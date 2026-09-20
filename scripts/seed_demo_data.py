@@ -312,7 +312,7 @@ def seed_demo_organization(
     with get_migration_session() as session:
         MetricService.refresh_cohort_materialized_view(session)
 
-    print(f"[✓] Demo Data Seed Completed for org_id: {org_id}!")
+    print(f"[SUCCESS] Demo Data Seed Completed for org_id: {org_id}!")
     return org_id
 
 if __name__ == "__main__":
