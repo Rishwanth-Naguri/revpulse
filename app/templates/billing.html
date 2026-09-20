@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Billing & Plan - RevPulse{% endblock %}
+
+{% block content %}
+<div class="space-y-8 max-w-5xl mx-auto">
+  <!-- Header -->
+  <div class="text-center max-w-2xl mx-auto">
+    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-500/10 text-brand-300 border border-brand-500/20 mb-3">
+      <span>Transparent Founder Pricing</span>
+    </div>
+    <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Manage Your RevPulse Subscription</h1>
+    <p class="text-xs text-slate-400 mt-2">
+      Fair, transparent pricing that scales with your tracked Monthly Recurring Revenue. Cancel or switch anytime.
+    </p>
+  </div>
+
+  <!-- Pricing Cards Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+    {% for plan in plans %}
+      <div class="glass-card rounded-2xl border p-6 flex flex-col justify-between relative transition-all {% if plan.id == current_tier or (current_tier == 'free' and plan.id == 'starter') %}border-brand-500 shadow-xl shadow-brand-500/10 ring-1 ring-brand-500/30{% else %}border-slate-800 hover:border-slate-700{% endif %}">
+        {% if plan.id == 'growth' %}
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-bold text-[10px] uppercase tracking-wider shadow">
+            Most Popular
+          </div>
+        {% endif %}
+
+        <div>
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-white">{{ plan.name }}</h2>
+            {% if (plan.id == current_tier) or (current_tier == 'free' and plan.id == 'starter') %}
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Current Plan
+              </span>
+            {% endif %}
+          </div>
+          <p class="text-xs text-slate-400 mt-1">{{ plan.mrr_limit }}</p>
+
+          <div class="mt-4 flex items-baseline gap-1">
+            <span class="text-3xl font-extrabold text-white">${{ plan.price }}</span>
+            <span class="text-xs text-slate-400">/ month</span>
+          </div>
+
+          <!-- Feature List -->
+          <ul class="mt-6 space-y-2.5 text-xs text-slate-300">
+            {% for f in plan.features %}
+              <li class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                <span>{{ f }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="pt-6 mt-6 border-t border-slate-800/80">
+          {% if (plan.id == current_tier) or (current_tier == 'free' and plan.id == 'starter') %}
+            <button disabled class="w-full py-2.5 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold cursor-not-allowed border border-slate-700">
+              Active Plan
+            </button>
+          {% else %}
+            <form action="{{ url_for('billing.create_checkout_session') }}" method="POST">
+              <input type="hidden" name="plan_id" value="{{ plan.id }}">
+              <button type="submit" class="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-md shadow-brand-600/30 transition-all flex items-center justify-center gap-2">
+                <span>Upgrade to {{ plan.name }}</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Stripe Customer Portal CTA -->
+  <div class="glass-card p-6 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-4 mt-8">
+    <div>
+      <h3 class="text-sm font-bold text-white">Need to update invoices or card details?</h3>
+      <p class="text-xs text-slate-400 mt-0.5">Manage your billing history and payment methods via the Stripe Customer Portal.</p>
+    </div>
+    <form action="{{ url_for('billing.create_portal_session') }}" method="POST">
+      <button type="submit" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-2">
+        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        Open Customer Portal
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

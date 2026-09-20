@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Customers & Subscriptions - RevPulse{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">Customers & Subscriptions</h1>
+      <p class="text-xs text-slate-400 mt-1">
+        Search, filter, and drill down into individual subscribers, MRR contribution, and invoice statuses.
+      </p>
+    </div>
+  </div>
+
+  <!-- Filters & Search Toolbar -->
+  <div class="glass-card p-4 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+    <!-- Search Box -->
+    <div class="relative flex-1 min-w-[240px] max-w-md">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+        <i data-lucide="search" class="w-4 h-4"></i>
+      </div>
+      <input 
+        type="text" 
+        name="search" 
+        value="{{ search or '' }}"
+        placeholder="Search by customer name or email..." 
+        hx-get="/customers" 
+        hx-trigger="keyup changed delay:300ms, search" 
+        hx-target="#customer-table-container"
+        hx-include="[name='status']"
+        class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-brand-500 transition-colors">
+    </div>
+
+    <!-- Status Dropdown -->
+    <div class="flex items-center gap-2">
+      <label class="text-xs text-slate-400 font-medium">Status:</label>
+      <select 
+        name="status" 
+        hx-get="/customers" 
+        hx-target="#customer-table-container"
+        hx-include="[name='search']"
+        class="py-2 px-3 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+        <option value="all" {% if status == 'all' %}selected{% endif %}>All Customers</option>
+        <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+        <option value="past_due" {% if status == 'past_due' %}selected{% endif %}>Past Due (At Risk)</option>
+        <option value="canceled" {% if status == 'canceled' %}selected{% endif %}>Canceled (Churned)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Table Container (swapped dynamically via HTMX) -->
+  <div id="customer-table-container" class="glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+    {% include "customers/_table.html" %}
+  </div>
+
+  <!-- Container for Customer Detail Modal -->
+  <div id="modal-container"></div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+<div class="overflow-x-auto">
+  <table class="w-full text-left text-xs whitespace-nowrap">
+    <thead>
+      <tr class="border-b border-slate-800 bg-slate-900/60 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
+        <th class="py-3 px-4">Customer</th>
+        <th class="py-3 px-4">Status</th>
+        <th class="py-3 px-4">Plan</th>
+        <th class="py-3 px-4 text-right">MRR</th>
+        <th class="py-3 px-4">Signed Up</th>
+        <th class="py-3 px-4 text-right">Action</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-800/60 font-sans">
+      {% for cust in customers %}
+        <tr class="hover:bg-slate-800/40 transition-colors">
+          <!-- Customer Name & Email -->
+          <td class="py-3 px-4">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300 uppercase">
+                {{ cust.name[:2] }}
+              </div>
+              <div>
+                <p class="font-semibold text-slate-200">{{ cust.name }}</p>
+                <p class="text-[11px] text-slate-400">{{ cust.email }}</p>
+              </div>
+            </div>
+          </td>
+
+          <!-- Status -->
+          <td class="py-3 px-4">
+            {% if cust.delinquent %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                Delinquent
+              </span>
+            {% elif cust.status == 'active' %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                Active
+              </span>
+            {% elif cust.status == 'past_due' %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                Past Due
+              </span>
+            {% elif cust.status == 'canceled' %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">
+                Canceled
+              </span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">
+                {{ cust.status }}
+              </span>
+            {% endif %}
+          </td>
+
+          <!-- Plan -->
+          <td class="py-3 px-4 text-slate-300 font-medium">
+            {{ cust.plan_name }}
+          </td>
+
+          <!-- MRR -->
+          <td class="py-3 px-4 text-right font-mono font-bold text-slate-200">
+            ${{ "{:,.2f}".format(cust.mrr) }}
+          </td>
+
+          <!-- Signed Up Date -->
+          <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">
+            {{ cust.created_at }}
+          </td>
+
+          <!-- Action / Drill down -->
+          <td class="py-3 px-4 text-right">
+            <button 
+              hx-get="/customers/{{ cust.id }}" 
+              hx-target="#modal-container"
+              class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[11px] font-medium transition-colors inline-flex items-center gap-1">
+              <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+              View
+            </button>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="6" class="py-12 text-center text-slate-500">
+            No customers match your query.
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination / Count Footer -->
+<div class="p-4 bg-slate-900/50 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+  <span>Showing page {{ page }} of {{ ((total - 1) // 25) + 1 if total > 0 else 1 }} ({{ total }} total customers)</span>
+  <div class="flex items-center gap-2">
+    {% if page > 1 %}
+      <button 
+        hx-get="/customers?page={{ page - 1 }}" 
+        hx-target="#customer-table-container" 
+        hx-include="[name='search'], [name='status']"
+        class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">
+        Previous
+      </button>
+    {% endif %}
+    {% if page * 25 < total %}
+      <button 
+        hx-get="/customers?page={{ page + 1 }}" 
+        hx-target="#customer-table-container" 
+        hx-include="[name='search'], [name='status']"
+        class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">
+        Next
+      </button>
+    {% endif %}
+  </div>
+</div>

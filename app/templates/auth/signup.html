@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - RevPulse{% endblock %}
+
+{% block public_content %}
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center p-6">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-8">
+      <div class="w-12 h-12 rounded-2xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center text-brand-400 mx-auto mb-3 shadow-lg shadow-brand-500/10">
+        <i data-lucide="sparkles" class="w-6 h-6"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">Create your RevPulse account</h1>
+      <p class="text-xs text-slate-400 mt-1">14-day free trial &bull; No credit card required</p>
+    </div>
+
+    <div class="glass p-8 rounded-2xl border border-slate-800 shadow-2xl">
+      <!-- Demo Login Fast Action -->
+      <div class="mb-6 pb-6 border-b border-slate-800">
+        <a href="{{ url_for('auth.demo_login') }}" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg shadow-brand-600/25 transition-all flex items-center justify-center gap-2">
+          <i data-lucide="play" class="w-4 h-4 fill-white"></i>
+          Explore Demo Mode Instantly
+        </a>
+      </div>
+
+      <form action="{{ url_for('auth.signup') }}" method="POST" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1.5">Full Name</label>
+          <input type="text" name="full_name" required placeholder="Jane Founder" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-sm text-white focus:outline-none focus:border-brand-500 transition-colors">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1.5">Company / SaaS Name</label>
+          <input type="text" name="org_name" required placeholder="Acme Analytics" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-sm text-white focus:outline-none focus:border-brand-500 transition-colors">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1.5">Work Email</label>
+          <input type="email" name="email" required placeholder="jane@acme.com" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-sm text-white focus:outline-none focus:border-brand-500 transition-colors">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1.5">Password</label>
+          <input type="password" name="password" required placeholder="Minimum 8 characters" minlength="8" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-sm text-white focus:outline-none focus:border-brand-500 transition-colors">
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs shadow-md shadow-brand-600/30 transition-all flex items-center justify-center gap-2 mt-2">
+          <span>Start Free Trial</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </button>
+      </form>
+
+      <p class="text-center text-xs text-slate-400 mt-6">
+        Already have an account? 
+        <a href="{{ url_for('auth.login') }}" class="font-semibold text-brand-400 hover:underline">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

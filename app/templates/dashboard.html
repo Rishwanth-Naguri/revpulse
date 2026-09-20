@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Revenue Dashboard - RevPulse{% endblock %}
+
+{% block content %}
+<div class="space-y-8 max-w-7xl mx-auto">
+  <!-- Page Header -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">Revenue Overview</h1>
+      <p class="text-xs text-slate-400 mt-1">
+        Consolidated MRR, ARR, day-over-day movements, and retention metrics.
+      </p>
+    </div>
+
+    <!-- Date Range Switcher -->
+    <div class="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold">
+      <a href="{{ url_for('dashboard.index', days=30) }}" class="px-3 py-1.5 rounded-lg transition-colors {% if days == 30 %}bg-brand-600 text-white shadow-sm{% else %}text-slate-400 hover:text-white{% endif %}">
+        30 Days
+      </a>
+      <a href="{{ url_for('dashboard.index', days=90) }}" class="px-3 py-1.5 rounded-lg transition-colors {% if days == 90 %}bg-brand-600 text-white shadow-sm{% else %}text-slate-400 hover:text-white{% endif %}">
+        90 Days
+      </a>
+      <a href="{{ url_for('dashboard.index', days=180) }}" class="px-3 py-1.5 rounded-lg transition-colors {% if days == 180 %}bg-brand-600 text-white shadow-sm{% else %}text-slate-400 hover:text-white{% endif %}">
+        6 Months
+      </a>
+      <a href="{{ url_for('dashboard.index', days=365) }}" class="px-3 py-1.5 rounded-lg transition-colors {% if days == 365 %}bg-brand-600 text-white shadow-sm{% else %}text-slate-400 hover:text-white{% endif %}">
+        1 Year
+      </a>
+    </div>
+  </div>
+
+  <!-- Primary KPI Cards Grid (4 Columns) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- 1. Total MRR -->
+    <div class="glass-card p-5 rounded-2xl border border-slate-800 relative overflow-hidden group hover:border-brand-500/40 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Monthly Recurring (MRR)</span>
+        <div class="w-8 h-8 rounded-lg bg-brand-500/10 text-brand-400 flex items-center justify-center">
+          <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="mt-3 flex items-baseline gap-2">
+        <span class="text-3xl font-extrabold text-white tracking-tight">${{ "{:,.2f}".format(kpis.total_mrr_cents / 100) }}</span>
+      </div>
+      <div class="mt-2 flex items-center gap-1 text-xs">
+        <span class="font-semibold text-emerald-400 flex items-center">
+          <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+          +${{ "{:,.2f}".format(kpis.net_new_mrr_cents / 100) }}
+        </span>
+        <span class="text-slate-500">net this month</span>
+      </div>
+    </div>
+
+    <!-- 2. ARR -->
+    <div class="glass-card p-5 rounded-2xl border border-slate-800 relative overflow-hidden group hover:border-brand-500/40 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Annual Run Rate (ARR)</span>
+        <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+          <i data-lucide="trending-up" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="mt-3 flex items-baseline gap-2">
+        <span class="text-3xl font-extrabold text-white tracking-tight">${{ "{:,.2f}".format(kpis.total_arr_cents / 100) }}</span>
+      </div>
+      <div class="mt-2 flex items-center gap-1 text-xs">
+        <span class="text-slate-400">MRR &times; 12 formula</span>
+      </div>
+    </div>
+
+    <!-- 3. Active Subscribers -->
+    <div class="glass-card p-5 rounded-2xl border border-slate-800 relative overflow-hidden group hover:border-brand-500/40 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Subscriptions</span>
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+          <i data-lucide="users" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="mt-3 flex items-baseline gap-2">
+        <span class="text-3xl font-extrabold text-white tracking-tight">{{ "{:,}".format(kpis.active_subscriptions) }}</span>
+      </div>
+      <div class="mt-2 flex items-center gap-1 text-xs">
+        <span class="text-slate-400">{{ "{:,}".format(kpis.active_customers) }} unique customers</span>
+      </div>
+    </div>
+
+    <!-- 4. At-Risk Revenue -->
+    <div class="glass-card p-5 rounded-2xl border border-amber-500/30 bg-amber-950/10 relative overflow-hidden group hover:border-amber-500/50 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-amber-300">At-Risk Invoices</span>
+        <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+          <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+        </div>
+      </div>
+      <div class="mt-3 flex items-baseline gap-2">
+        <span class="text-3xl font-extrabold text-amber-400 tracking-tight">${{ "{:,.2f}".format(kpis.at_risk.total_cents / 100) }}</span>
+      </div>
+      <div class="mt-2 flex items-center gap-1 text-xs">
+        <span class="text-amber-300/80">{{ kpis.at_risk.count }} overdue invoices</span>
+        <a href="{{ url_for('customers.index', status='past_due') }}" class="ml-auto text-amber-400 hover:underline font-semibold text-[11px]">View</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Primary Interactive Chart: MRR Growth Over Time -->
+  <div class="glass-card p-6 rounded-2xl border border-slate-800">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-base font-bold text-white">MRR Growth Trajectory</h2>
+        <p class="text-xs text-slate-400">Daily normalized MRR curve from PostgreSQL date spine</p>
+      </div>
+      <div class="flex items-center gap-3 text-xs">
+        <div class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+          <span class="text-slate-300">MRR ($)</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+          <span class="text-slate-300">Active Subs</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas Container -->
+    <div class="h-80 w-full relative">
+      <canvas id="mrrChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Secondary Row: MRR Movements & Retention KPIs -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- MRR Movements Breakdown (2 Cols) -->
+    <div class="lg:col-span-2 glass-card p-6 rounded-2xl border border-slate-800">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-base font-bold text-white">Month-to-Date MRR Movements</h2>
+          <p class="text-xs text-slate-400">Classified using PostgreSQL LAG() over subscription states</p>
+        </div>
+        <span class="text-xs font-semibold px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">
+          Net: ${{ "{:+,.2f}".format(kpis.net_new_mrr_cents / 100) }}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4">
+        <!-- New MRR -->
+        <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+          <p class="text-[11px] font-semibold text-emerald-400 uppercase">New MRR</p>
+          <p class="text-lg font-bold text-white mt-1">+${{ "{:,.0f}".format(kpis.movements.new_cents / 100) }}</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">First-time subs</p>
+        </div>
+
+        <!-- Expansion -->
+        <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+          <p class="text-[11px] font-semibold text-indigo-400 uppercase">Expansion</p>
+          <p class="text-lg font-bold text-white mt-1">+${{ "{:,.0f}".format(kpis.movements.expansion_cents / 100) }}</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Upgrades & adds</p>
+        </div>
+
+        <!-- Contraction -->
+        <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+          <p class="text-[11px] font-semibold text-amber-400 uppercase">Contraction</p>
+          <p class="text-lg font-bold text-white mt-1">-${{ "{:,.0f}".format(kpis.movements.contraction_cents / 100) }}</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Downgrades</p>
+        </div>
+
+        <!-- Churn -->
+        <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+          <p class="text-[11px] font-semibold text-rose-400 uppercase">Churn</p>
+          <p class="text-lg font-bold text-white mt-1">-${{ "{:,.0f}".format(kpis.movements.churn_cents / 100) }}</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Cancellations</p>
+        </div>
+
+        <!-- Reactivation -->
+        <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+          <p class="text-[11px] font-semibold text-teal-400 uppercase">Reactivation</p>
+          <p class="text-lg font-bold text-white mt-1">+${{ "{:,.0f}".format(kpis.movements.reactivation_cents / 100) }}</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Returned accounts</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SaaS Health & Retention (1 Col) -->
+    <div class="glass-card p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
+      <div>
+        <h2 class="text-base font-bold text-white">SaaS Unit Economics</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Efficiency and retention ratios</p>
+      </div>
+
+      <div class="space-y-4 my-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 text-sm">
+          <span class="text-slate-400">Net Revenue Retention (NRR)</span>
+          <span class="font-bold {% if kpis.net_revenue_retention >= 100 %}text-emerald-400{% else %}text-slate-200{% endif %}">
+            {{ kpis.net_revenue_retention }}%
+          </span>
+        </div>
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 text-sm">
+          <span class="text-slate-400">Logo Churn Rate</span>
+          <span class="font-bold text-slate-200">{{ kpis.logo_churn_rate }}%</span>
+        </div>
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 text-sm">
+          <span class="text-slate-400">Revenue Churn Rate</span>
+          <span class="font-bold text-slate-200">{{ kpis.revenue_churn_rate }}%</span>
+        </div>
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 text-sm">
+          <span class="text-slate-400">ARPA (Avg Rev / Account)</span>
+          <span class="font-bold text-slate-200">${{ "{:,.2f}".format(kpis.arpa_cents / 100) }}</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-400">Estimated LTV</span>
+          <span class="font-bold text-emerald-400">${{ "{:,.2f}".format(kpis.simple_ltv_cents / 100) }}</span>
+        </div>
+      </div>
+
+      <a href="{{ url_for('cohorts.index') }}" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 border border-slate-700 transition-all">
+        <i data-lucide="grid" class="w-3.5 h-3.5"></i>
+        <span>Inspect Cohort Retention Matrix</span>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const rawData = {{ time_series | tojson }};
+    const labels = rawData.map(d => d.date);
+    const mrrValues = rawData.map(d => d.mrr_cents / 100);
+    const subValues = rawData.map(d => d.active_subscriptions);
+
+    const ctx = document.getElementById("mrrChart").getContext("2d");
+
+    // Brand gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, "rgba(99, 102, 241, 0.4)");
+    gradient.addColorStop(1, "rgba(99, 102, 241, 0.0)");
+
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "MRR ($)",
+            data: mrrValues,
+            borderColor: "#6366f1",
+            borderWidth: 2.5,
+            pointBackgroundColor: "#6366f1",
+            pointRadius: labels.length > 60 ? 0 : 2,
+            pointHoverRadius: 5,
+            fill: true,
+            backgroundColor: gradient,
+            tension: 0.25,
+            yAxisID: "y",
+          },
+          {
+            label: "Active Subs",
+            data: subValues,
+            borderColor: "#10b981",
+            borderWidth: 2,
+            borderDash: [4, 4],
+            pointRadius: 0,
+            fill: false,
+            tension: 0.25,
+            yAxisID: "y1",
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false,
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(15, 23, 42, 0.95)",
+            titleColor: "#94a3b8",
+            bodyColor: "#f8fafc",
+            borderColor: "rgba(255, 255, 255, 0.1)",
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 4,
+            callbacks: {
+              label: function(context) {
+                if (context.dataset.label === "MRR ($)") {
+                  return " MRR: $" + context.parsed.y.toLocaleString("en-US", { minimumFractionDigits: 2 });
+                } else {
+                  return " Active Subs: " + context.parsed.y.toLocaleString();
+                }
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: "#64748b",
+              maxTicksLimit: 12,
+              font: { size: 11 }
+            }
+          },
+          y: {
+            position: "left",
+            grid: { color: "rgba(255, 255, 255, 0.04)" },
+            ticks: {
+              color: "#64748b",
+              font: { size: 11 },
+              callback: function(value) { return "$" + (value >= 1000 ? (value / 1000).toFixed(0) + "k" : value); }
+            }
+          },
+          y1: {
+            position: "right",
+            grid: { display: false },
+            ticks: {
+              color: "#64748b",
+              font: { size: 11 },
+              callback: function(value) { return value.toLocaleString(); }
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

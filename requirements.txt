@@ -1,0 +1,35 @@
+# Web Framework & Auth
+flask>=3.0.2
+werkzeug>=3.0.1
+flask-login>=0.6.3
+authlib>=1.3.0
+cryptography>=42.0.5
+argon2-cffi>=23.1.0
+python-dotenv>=1.0.1
+
+# Database & Migrations
+sqlalchemy>=2.0.28
+alembic>=1.13.1
+psycopg[binary]>=3.1.18
+
+# Data & Validation
+pydantic>=2.6.4
+sqlglot>=23.4.0
+
+# Stripe & Integrations
+stripe>=8.9.0
+resend>=0.8.0
+httpx>=0.27.0
+
+# LLM Providers
+google-genai>=0.1.1
+
+# Production Server
+gunicorn>=21.2.0
+
+# Testing & Quality
+pytest>=8.1.1
+pytest-cov>=4.1.0
+ruff>=0.3.3
+mypy>=1.9.0
+types-requests>=2.31.0.20240311
