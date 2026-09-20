@@ -6,57 +6,32 @@
 
 ## 🏗️ Architecture Diagram
 
-```mermaid
-flowchart TD
-    subgraph Clients["Clients & External"]
-        Browser["Founder Web Browser<br/>(Tailwind + HTMX + Chart.js)"]
-        StripeAPI["Stripe API & Webhooks<br/>(API Version: 2024-06-20)"]
-    end
+               ┌────────────────────────────────────────────────────────┐
+               │                     Web Application                     │
+               │  Flask (Blueprints) + Jinja2 + HTMX + Tailwind + Chart.js│
+               └───────────┬────────────────────────────┬───────────────┘
+                           │                            │
+                     (App Pool / RLS)          (Read-only Pool / RLS)
+                           │                            │
+                           ▼                            ▼
+               ┌────────────────────────┐   ┌───────────────────────────┐
+               │    PostgreSQL (Core)   │   │ PostgreSQL (Analytics View)│
+               │  - Tenant RLS enforced │   │ - revpulse_readonly role  │
+               │  - Partitioned Events  │   │ - Curated schema views    │
+               │  - Materialized Cohorts│   │ - sqlglot AST Guard       │
+               │  - Job Queue (SKIP LCK)│   └─────────────▲─────────────┘
+               └───────────▲────────────┘                 │
+                           │                    ┌─────────┴─────────────┐
+                    (Jobs Queue)                │  LLM Provider (Gemini) │
+                           │                    └───────────────────────┘
+               ┌───────────┴────────────┐
+               │     Worker Process     │
+               │  - Backfill Sync       │
+               │  - Webhook Consumer    │
+               │  - Daily MRR Snapshots │
+               │  - Alert Evaluation    │
+               └────────────────────────┘
 
-    subgraph AppLayer["Application Layer (Flask 3)"]
-        AppFactory["Flask App Factory & Blueprints"]
-        AuthBP["Auth & Multi-Tenancy Context"]
-        DashBP["Dashboard & Chart Endpoints"]
-        CohortsBP["Cohort Retention Matrix"]
-        AskBP["AI 'Ask Your Data' Assistant"]
-        AlertsBP["Slack & Email Alert Dispatcher"]
-        BillingBP["SaaS Subscription Management"]
-    end
-
-    subgraph SecurityLayer["Security & Validation Layer"]
-        SQLGuard["AST SQL-Guard (sqlglot)<br/>Single SELECT • Whitelist • LIMIT <= 100"]
-        CryptoService["AES-128 Fernet Key Encryption"]
-    end
-
-    subgraph DBLayer["PostgreSQL 16 Database"]
-        MigratorRole[("revpulse_migrator<br/>DDL & Alembic Migrations")]
-        AppRole[("revpulse_app (NOBYPASSRLS)<br/>Multi-Tenant Row-Level Security")]
-        ReadonlyRole[("revpulse_readonly (3000ms timeout)<br/>analytics.* & Materialized View")]
-        
-        PartitionedEvents["stripe_events (Monthly Partitioned)"]
-        JobsQueue["jobs (SKIP LOCKED Worker Queue)"]
-        DailyMRR["mrr_daily (Date-Spine Snapshots)"]
-        Movements["mrr_movements (LAG Transition Logs)"]
-        CohortMV["cohort_retention_mv (Concurrent Refresh)"]
-    end
-
-    subgraph WorkerLayer["Background Daemon"]
-        Worker["Python Worker Process<br/>(worker.py - Backfill, Aggregations, Alerts)"]
-    end
-
-    Browser -->|HTTP / HTMX| AppFactory
-    StripeAPI -->|Webhooks| AppFactory
-    AppFactory --> AuthBP & DashBP & CohortsBP & AskBP & AlertsBP & BillingBP
-    
-    AskBP --> SQLGuard
-    SQLGuard -->|Safe SELECT| ReadonlyRole
-    DashBP & CohortsBP & AuthBP -->|set_config(app.current_org_id)| AppRole
-    
-    Worker -->|SELECT ... FOR UPDATE SKIP LOCKED| JobsQueue
-    Worker -->|Sync & Aggregate| AppRole
-    StripeAPI <-->|Backfill / SDK| Worker
-    MigratorRole -->|DDL / Alembic| DBLayer
-```
 
 ---
 
